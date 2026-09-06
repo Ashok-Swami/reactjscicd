@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dreamy-frontend
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: dreamy-frontend
+
+  template:
+    metadata:
+      labels:
+        app: dreamy-frontend
+
+    spec:
+      containers:
+        - name: dreamy-frontend
+
+          image: IMAGE_PLACEHOLDER
+
+          ports:
+            - containerPort: 80
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
