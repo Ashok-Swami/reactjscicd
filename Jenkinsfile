@@ -198,21 +198,36 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 sh '''
-                    echo "Applying Deployment..."
+                    echo "======================================"
+                    echo "DEPLOYING KUBERNETES RESOURCES"
+                    echo "======================================"
 
+                    echo "Applying ConfigMap..."
                     kubectl \
-                      --kubeconfig "$KUBECONFIG" \
-                      apply -f k8s/deployment.yaml
+                    --kubeconfig "$KUBECONFIG" \
+                    apply -f k8s/configmap.yaml
+
+                    echo "Applying Deployment..."
+                    kubectl \
+                    --kubeconfig "$KUBECONFIG" \
+                    apply -f k8s/deployment.yaml
 
                     echo "Applying Service..."
-
                     kubectl \
-                      --kubeconfig "$KUBECONFIG" \
-                      apply -f k8s/service.yaml
+                    --kubeconfig "$KUBECONFIG" \
+                    apply -f k8s/service.yaml
+
+                    echo "Applying HPA..."
+                    kubectl \
+                    --kubeconfig "$KUBECONFIG" \
+                    apply -f k8s/hpa.yaml
+
+                    echo "======================================"
+                    echo "KUBERNETES RESOURCES APPLIED"
+                    echo "======================================"
                 '''
             }
         }
-
         stage('Wait for Deployment') {
             steps {
                 sh '''
@@ -227,37 +242,53 @@ pipeline {
             }
         }
 
-        stage('Verify Deployment') {
-            steps {
-                sh '''
-                    echo "======================================"
-                    echo "PODS"
-                    echo "======================================"
+stage('Verify Deployment') {
+    steps {
+        sh '''
+            echo "======================================"
+            echo "PODS"
+            echo "======================================"
 
-                    kubectl \
-                      --kubeconfig "$KUBECONFIG" \
-                      get pods -o wide
+            kubectl \
+              --kubeconfig "$KUBECONFIG" \
+              get pods -o wide
 
-                    echo "======================================"
-                    echo "DEPLOYMENT"
-                    echo "======================================"
+            echo "======================================"
+            echo "DEPLOYMENT"
+            echo "======================================"
 
-                    kubectl \
-                      --kubeconfig "$KUBECONFIG" \
-                      get deployment dreamy-frontend
+            kubectl \
+              --kubeconfig "$KUBECONFIG" \
+              get deployment dreamy-frontend
 
-                    echo "======================================"
-                    echo "SERVICE"
-                    echo "======================================"
+            echo "======================================"
+            echo "SERVICE"
+            echo "======================================"
 
-                    kubectl \
-                      --kubeconfig "$KUBECONFIG" \
-                      get service dreamy-frontend
+            kubectl \
+              --kubeconfig "$KUBECONFIG" \
+              get service dreamy-frontend
 
-                    echo "======================================"
-                '''
-            }
-        }
+            echo "======================================"
+            echo "HPA"
+            echo "======================================"
+
+            kubectl \
+              --kubeconfig "$KUBECONFIG" \
+              get hpa dreamy-frontend
+
+            echo "======================================"
+            echo "CONFIGMAP"
+            echo "======================================"
+
+            kubectl \
+              --kubeconfig "$KUBECONFIG" \
+              get configmap dreamy-frontend-config
+
+            echo "======================================"
+        '''
+    }
+}
     }
 
     post {

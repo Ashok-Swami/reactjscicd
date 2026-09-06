@@ -20,6 +20,10 @@ spec:
         - name: dreamy-frontend
           image: IMAGE_PLACEHOLDER
 
+          envFrom:
+            - configMapRef:
+                name: dreamy-frontend-config
+
           ports:
             - containerPort: 80
 
@@ -31,3 +35,25 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+
+          # Checks whether the application is alive.
+          # If this fails repeatedly, Kubernetes restarts the container.
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          # Checks whether the application is ready to receive traffic.
+          # If this fails, Kubernetes removes the pod from Service endpoints.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
