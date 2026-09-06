@@ -1,3 +1,4 @@
+# Stage 1: Build React application
 FROM node:22-alpine AS build
 
 WORKDIR /app
@@ -11,8 +12,13 @@ COPY . .
 RUN npm run build
 
 
+# Stage 2: Production Nginx
 FROM nginx:alpine
 
+# Update Alpine packages to latest security fixes
+RUN apk update && apk upgrade --no-cache
+
+# Copy React production build
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
