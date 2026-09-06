@@ -228,19 +228,48 @@ pipeline {
                 '''
             }
         }
-        stage('Wait for Deployment') {
-            steps {
-                sh '''
-                    echo "Waiting for deployment rollout..."
+    stage('Wait for Deployment') {
+        steps {
+            script {
+                def rolloutStatus = sh(
+                    script: '''
+                        kubectl \
+                        --kubeconfig "$KUBECONFIG" \
+                        rollout status \
+                        deployment/dreamy-frontend \
+                        --timeout=5m
+                    ''',
+                    returnStatus: true
+                )
 
-                    kubectl \
-                      --kubeconfig "$KUBECONFIG" \
-                      rollout status \
-                      deployment/dreamy-frontend \
-                      --timeout=5m
-                '''
+                if (rolloutStatus != 0) {
+
+                    echo "======================================"
+                    echo "DEPLOYMENT FAILED"
+                    echo "ROLLING BACK"
+                    echo "======================================"
+
+                    sh '''
+                        kubectl \
+                        --kubeconfig "$KUBECONFIG" \
+                        rollout undo deployment/dreamy-frontend
+                    '''
+
+                    sh '''
+                        kubectl \
+                        --kubeconfig "$KUBECONFIG" \
+                        rollout status \
+                        deployment/dreamy-frontend \
+                        --timeout=5m
+                    '''
+
+                    error("Deployment failed. Previous version restored.")
+                }
+
+                echo "Deployment rollout successful."
             }
         }
+    }
 
 stage('Verify Deployment') {
     steps {

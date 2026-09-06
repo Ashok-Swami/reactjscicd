@@ -1,10 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: dreamy-frontend
 
 spec:
   replicas: 2
+
+  # Rolling update configuration
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
 
   selector:
     matchLabels:
@@ -36,8 +44,6 @@ spec:
               cpu: "500m"
               memory: "512Mi"
 
-          # Checks whether the application is alive.
-          # If this fails repeatedly, Kubernetes restarts the container.
           livenessProbe:
             httpGet:
               path: /
@@ -47,8 +53,6 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 3
 
-          # Checks whether the application is ready to receive traffic.
-          # If this fails, Kubernetes removes the pod from Service endpoints.
           readinessProbe:
             httpGet:
               path: /
