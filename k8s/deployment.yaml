@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dreamy-frontend
+
 spec:
   replicas: 2
 
@@ -17,7 +18,6 @@ spec:
     spec:
       containers:
         - name: dreamy-frontend
-
           image: IMAGE_PLACEHOLDER
 
           ports:
